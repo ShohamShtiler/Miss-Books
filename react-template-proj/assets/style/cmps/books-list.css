@@ -1,0 +1,62 @@
+.books-lst-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.book-card {
+  border: 1px solid black;
+  border-radius: 5px;
+  margin: 0.7em;
+  max-width: 201px;
+  overflow: hidden;
+}
+
+.book-card:nth-child(odd) {
+  background-color: #ddd;
+}
+
+.book-card:nth-child(even) {
+  background-color: #bbb;
+}
+
+.book-card-select-book {
+  cursor: pointer;
+}
+
+.book-card-title {
+  background-color: black;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.book-card-thumbnail {
+  width: 200px;
+  height: auto;
+  display: block;
+}
+
+.book-card-details {
+  padding: 5px;
+}
+
+.book-card-detail {
+  display: flex;
+  gap: 5px;
+  justify-content: space-between;
+}
+
+.book-card-details-title {
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+.book-card-details-info {
+  text-transform: capitalize;
+  text-align: right;
+  word-wrap: break-word;
+}

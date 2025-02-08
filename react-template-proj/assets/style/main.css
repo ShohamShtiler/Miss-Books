@@ -9,5 +9,13 @@
 @import 'base/forms.css';
 
 /* Components */
-@import 'cmps/app-header.css';
-@import 'cmps/user-msg.css';
+@import url('./cmps/books-list.css');
+@import url('./cmps/books-details.css');
+@import url('./cmps/books-edit.css');
+@import url('./cmps/books-filter.css');
+@import url('./cmps/app-header.css');
+@import url('./cmps/about-us.css');
+@import url('./cmps/home-page.css');
+
+/* Pages */
+@import 'pages/home.css'

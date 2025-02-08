@@ -1,0 +1,51 @@
+.filter-container {
+  background-color: #967E76;
+  padding: 1rem;
+  color: white;
+}
+
+.filter-inside-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.filter-container h2 {
+  text-align: center;
+  margin: 0;
+  margin-bottom: 0.5rem;
+}
+
+.books-filter{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.books-filter label{
+    font-weight: 600;
+    margin-inline-end: .5rem;
+}
+.input{
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  border: 0;
+}
+.input:focus{
+  outline: none;
+}
+.filter-section{
+  margin: 0 1rem;
+
+}
+.filter-btn{
+  border: 0;
+  padding: 0.5rem 1rem;
+  border-radius:4px ;
+  font-weight: bold;
+  background-color: rgb(63, 63, 245);
+  cursor: pointer;
+}
+.filter-btn:hover{
+  background-color: rgba(63, 63, 245, 0.507);
+  
+}
