@@ -2,7 +2,9 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  margin-top: 20px;
+  padding: 20px;
+  background-color: #212121;
+
 }
 
 .book-card {
@@ -11,14 +13,8 @@
   margin: 0.7em;
   max-width: 201px;
   overflow: hidden;
-}
-
-.book-card:nth-child(odd) {
   background-color: #ddd;
-}
-
-.book-card:nth-child(even) {
-  background-color: #bbb;
+  
 }
 
 .book-card-select-book {

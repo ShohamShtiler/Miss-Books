@@ -16,3 +16,21 @@ input:focus {
     background-color: #D7C0AE;
     transition: background-color 1s;
 }
+
+.select-btn {
+    background-color: #4c6a5e;
+}
+
+.select-btn:hover {
+    background-color:#6D9886;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #A04747;
+}
+
+.delete-btn:hover {
+    background-color: #B82132;
+    color: white;
+}
