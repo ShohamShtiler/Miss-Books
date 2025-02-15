@@ -1,12 +1,9 @@
-export function BookPreview({ book , idx }) {
-    const imgSrc = `assets/img/${idx}.jpg`
-    // console.log(imgSrc)
+export function BookPreview({ book }) {
 
     return <article>
         <div className="book-card-select-book" >
             <div className="book-card-title">{book.title}</div>
-            {/* <img src={book.thumbnail} className="book-card-thumbnail" /> */}
-            <img src={imgSrc} className="book-card-thumbnail" />
+            <img src={ book.thumbnail } className="book-card-thumbnail" />
         </div>
 
         <div className="book-card-details">

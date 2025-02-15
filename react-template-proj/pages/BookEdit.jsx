@@ -1,149 +1,130 @@
+import { AddGoogleBook } from "../cmps/AddGoogleBook.jsx"
+import { booksService } from "../services/books.service.js"
+import { showErrorMsg } from '../services/event-bus.service.js'
+import { showSuccessMsg } from '../services/event-bus.service.js'
+
+
+const { useParams, useNavigate } = ReactRouter
+
+
 const { useState, useEffect } = React
 
-import { LongTxt } from '../cmps/LongTxt.jsx'
-import { bookService } from '../services/book-service.js'
-import { BookDetails } from './BookDetails.jsx'
+
+export function BookEdit() {
+    const [bookToEdit, setBookToEdit] = useState(booksService.getEmptyBook())
+    console.log('bookToEdit:', bookToEdit)
 
 
-export function BookEdit({ book, onUpdate, onCancelEdit }) {
-  const [bookToEdit, setBookToEdit] = useState(book)
+    const params = useParams()
+    const navigate = useNavigate()
 
-  const regionNames = new Intl.DisplayNames(['en'], { type: 'language' })
 
-  function handleChange({ target }) {
-    let { value, name: field } = target
-    switch (field) {
-      case 'title':
-        value = target.value || bookToEdit.title
-        break
-      case 'price':
-        value = +target.value || bookToEdit.listPrice.amount
-        break
+    useEffect(() => {
+        if (!params.bookId) return
+
+
+        loadBook()
+    }, [])
+
+
+    function loadBook() {
+        booksService.get(params.bookId)
+            .then(setBookToEdit)
     }
 
-    if (field === 'price') {
-      setBookToEdit((prevBook) => ({ ...prevBook, listPrice: { ...book.listPrice, amount: value } }))
-    } else {
-      setBookToEdit((prevBook) => ({ ...prevBook, [field]: value }))
+
+    function onSave(ev) {
+        ev.preventDefault()
+
+
+        booksService.save(bookToEdit)
+            .then(() => showSuccessMsg('Book has successfully saved!'))
+            .catch(() => showErrorMsg(`couldn't save book`))
+            .finally(() => navigate('/book'))
     }
-  }
 
-  function onSaveBook(ev) {
-    ev.preventDefault()
-    onUpdate(bookToEdit)
-  }
 
-  function getPublisheDate() {
-    const currYear = new Date().getFullYear()
-    let publishedYear = book.publishedDate
-    let diff = currYear - publishedYear
-    if (diff > 10) publishedYear += ' - Veteran Book'
-    else if (diff < 1) publishedYear += ' - NEW!'
-    return publishedYear
-  }
+    function handleChange({ target }) {
+        const { type, name: prop } = target
+        let { value } = target
 
-  function getPageCount() {
-    // Switch case is fine
-    let pageCount = book.pageCount
-    if (book.pageCount > 500) pageCount += ' - Long reading'
-    else if (book.pageCount > 200) pageCount += ' - Decent reading'
-    else if (book.pageCount < 100) pageCount += ' - Light rading'
-    return pageCount
-  }
 
-  return (
-    <section className='book-edit'>
-      <h2 className='edit-book-header'>Edit Book</h2>
-      <div className='book-edit-container'>
-        <div className='book-details-subtitle'>{book.subtitle}</div>
-        <div className='book-thumbnail-container'>
-          {book.listPrice.isOnSale ? <div className='book-details-on-sale'>On-sale!</div> : ''}
-          {/* <img src={book.thumbnail} /> */}
-          <img src={book.imgSrc} />
-        </div>
+        switch (type) {
+            case 'range':
+            case 'number':
+                value = +value
+                break;
 
-        <form onSubmit={onSaveBook}>
-          <div className='book-details-info'>
-            <div className='book-details-info-row'>
-              <span className='book-details-info-title'>Title:</span>
-              <span className='book-details-info-text'>
-                <input
-                  type='text'
-                  placeholder='Enter New Title'
-                  name='title'
-                  value={bookToEdit.title}
-                  onChange={handleChange}
-                />
-              </span>
-            </div>
 
-            <div className='book-details-info-row'>
-              <span className='book-details-info-title'>Year publish:</span>
-              <span className='book-details-info-text'>
-                {getPublisheDate()}
-              </span>
-            </div>
+            case 'checkbox':
+                value = target.checked
+                break;
+        }
+        setBookToEdit(prevBook => ({ ...prevBook, [prop]: value }))
+    }
 
-            <div className='book-details-info-row'>
-              <span className='book-details-info-title'>
-                Author{book.authors.length > 1 ? 's' : ''}:
-              </span>
-              <span className='book-details-info-text'>
-                {book.authors.join(', ')}
-              </span>
-            </div>
 
-            <div className='book-details-info-row'>
-              <span className='book-details-info-title'>Language:</span>
-              <span className='book-details-info-text'>
-                {regionNames.of(book.language)}
-              </span>
-            </div>
+    function handleChangeListPrice({ target }) {
+        const { type, name: prop } = target
+        let { value } = target
 
-            <div className='book-details-info-row'>
-              <span className='book-details-info-title'>Categories:</span>
-              <span className='book-details-info-text'>
-                {book.categories.join(', ')}
-              </span>
-            </div>
 
-            <div className='book-details-info-row'>
-              <span className='book-details-info-title'>Pages:</span>
-              <span className='book-details-info-text'>{getPageCount()}</span>
-            </div>
+        switch (type) {
+            case 'range':
+            case 'number':
+                value = +value
+                break;
 
-            <div className='book-details-info-row'>
-              <span className='book-details-info-title'>Price:</span>
-              <span className='book-details-info-text'>
-                <input
-                  type='text'
-                  placeholder='Set Price'
-                  name='price'
-                  onChange={handleChange}
-                  value={bookToEdit.listPrice.amount}
-                />
-              </span>
-            </div>
 
-            <div className='book-edit-actions-container'>
-              <button className='save-edit-btn' onClick={onSaveBook}>
-                Save ✔
-              </button>
-              <button
-                className='cancel-edit-btn'
-                onClick={onCancelEdit}
-              >
-                Cancel ✖
-              </button>
-            </div>
+            case 'checkbox':
+                value = target.checked
+                break;
+        }
 
-            <div className='book-details-info-row'>
-              <span className='book-details-info-title'>Description:</span>
-              <LongTxt txt={book.description} />
-            </div>
-          </div>
+
+        setBookToEdit(prevBook => ({
+            ...prevBook,
+            listPrice: { ...prevBook.listPrice, [prop]: value }
+        }))
+    }
+
+
+    const { title, authors, listPrice, description, pageCount } = bookToEdit
+
+
+    return <section className='book-edit'>
+        <h2>{params.bookId ? 'Edit' : 'Add'} Book</h2>
+
+
+        {!params.bookId && <AddGoogleBook />}
+
+
+        <form onSubmit={onSave}>
+            <label className='bold-txt' htmlFor="title">Title: </label>
+            <input onChange={handleChange} value={title} id='title' type="text" name='title' />
+
+
+            <label className='bold-txt' htmlFor="authors">Authors: </label>
+            <input onChange={handleChange} value={authors} id='authors' type="text" name='authors' />
+
+
+            <label className='bold-txt' htmlFor="description">Description: </label>
+            <input onChange={handleChange} value={description} id='description' type="text" name='description' />
+
+
+            <label className='bold-txt' htmlFor="pages">Number of pages: </label>
+            <input onChange={handleChange} value={pageCount} id='pages' type="number" name='pageCount' />
+
+
+            <label className='bold-txt' htmlFor="price">Price: </label>
+            <input onChange={handleChangeListPrice} value={listPrice.amount} id='price' type="number" name='amount' />
+
+
+            <label className='bold-txt' htmlFor="isOnSale">On Sale: </label>
+            <input onChange={handleChangeListPrice} checked={listPrice.isOnSale} id='isOnSale' type="checkbox" name='isOnSale' />
+
+
+            <button>Save</button>
         </form>
-      </div>
     </section>
-  )
 }

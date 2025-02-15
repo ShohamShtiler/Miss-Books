@@ -4,13 +4,14 @@ export const storageService = {
     post,
     put,
     remove,
-    save,
 }
 
-function query(entityType, delay = 500) {
+
+function query(entityType, delay = 300) {
     var entities = JSON.parse(localStorage.getItem(entityType)) || []
     return new Promise(resolve => setTimeout(() => resolve(entities), delay))
 }
+
 
 function get(entityType, entityId) {
     return query(entityType).then(entities => {
@@ -20,40 +21,47 @@ function get(entityType, entityId) {
     })
 }
 
-function post(entityType, newEntity) {
-    newEntity = {...newEntity }
-    newEntity.id = _makeId()
+
+function post(entityType, newEntity, isRegularBook = true) {
+    newEntity = { ...newEntity }
+    if (isRegularBook) newEntity.id = _makeId()
     return query(entityType).then(entities => {
         entities.push(newEntity)
-        save(entityType, entities)
+        _save(entityType, entities)
         return newEntity
     })
 }
+
 
 function put(entityType, updatedEntity) {
     return query(entityType).then(entities => {
         const idx = entities.findIndex(entity => entity.id === updatedEntity.id)
         if (idx < 0) throw new Error(`Update failed, cannot find entity with id: ${entityId} in: ${entityType}`)
-        entities.splice(idx, 1, updatedEntity)
-        save(entityType, entities)
+        const entityToUpdate = { ...entities[idx], ...updatedEntity }
+        entities.splice(idx, 1, entityToUpdate)
+        _save(entityType, entities)
         return updatedEntity
     })
 }
+
 
 function remove(entityType, entityId) {
     return query(entityType).then(entities => {
         const idx = entities.findIndex(entity => entity.id === entityId)
         if (idx < 0) throw new Error(`Remove failed, cannot find entity with id: ${entityId} in: ${entityType}`)
         entities.splice(idx, 1)
-        save(entityType, entities)
+        _save(entityType, entities)
     })
 }
 
+
 // Private functions
 
-function save(entityType, entities) {
+
+function _save(entityType, entities) {
     localStorage.setItem(entityType, JSON.stringify(entities))
 }
+
 
 function _makeId(length = 5) {
     var text = ''

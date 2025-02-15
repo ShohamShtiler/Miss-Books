@@ -1,116 +1,158 @@
+const { useState, useEffect } = React
+const { useParams, useNavigate } = ReactRouter
+const { Link } = ReactRouterDOM
+
+
 import { LongTxt } from "../cmps/LongTxt.jsx";
+import { booksService } from "../services/books.service.js";
+import { AddReview } from "../cmps/AddReview.jsx";
+import { ReviewList } from "../cmps/ReviewList.jsx";
+import { showErrorMsg } from "../services/event-bus.service.js";
+import { reviewService } from "../services/review.service.js";
 
-export function BookDetails({ book, onGoBack, onGoEdit }) {
 
-    function getBookLng(lng) {
-        switch (lng) {
-            case 'he':
-                return 'Hebrew'
-            case 'sp':
-                return 'Spanish'
-            default:
-                return 'English'
-        }
+export function BookDetails() {
+    const [book, setBook] = useState(null)
+    console.log('book:', book)
+    const [isLoading, setIsLoading] = useState(true)
+    const [isLoadingReview, setIsLoadingReview] = useState(false)
+    const [isShowReviewModal, setIsShowReviewModal] = useState(false)
+
+
+    const params = useParams()
+    const navigate = useNavigate()
+
+
+    useEffect(() => {
+        loadBook()
+    }, [params.bookId])
+
+
+
+
+    function loadBook() {
+        setIsLoading(true)
+        booksService.get(params.bookId)
+            .then(setBook)
+            .catch(() => {
+                showErrorMsg('Couldnt get book...')
+                navigate(`/book`)
+            })
+            .finally(() => {
+                setIsLoading(false)
+            })
     }
 
-    function getPublishDate() {
-        const currYear = new Date().getFullYear()
-        let publishedYear = book.publishedDate
-        let diff = currYear - publishedYear
-        if (diff > 10) publishedYear += ' - Vintage';
-        else if (diff < 3) publishedYear += ' - NEW!'
-        return publishedYear
-    }
 
-    function getPageCount() {
-        // Switch case is fine
-        let pageCount = book.pageCount
-        if (book.pageCount > 500) pageCount += ' - Long reading'
-        else if (book.pageCount > 200) pageCount += ' - Decent reading'
-        else if (book.pageCount < 100) pageCount += ' - Light reading'
-        return pageCount
-    }
-
-    function getPriceClass() {
-        if (book.listPrice.amount > 150) return 'red'
-        else if (book.listPrice.amount < 20) return 'green'
-        return ''
+    function getBookDateLevel() {
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currYearDiff = currentYear - book.publishedDate
+        return currYearDiff > 10 ? 'Vintage Book' : 'New Book'
     }
 
 
-    const {
-        title,
-        subtitle,
-        thumbnail,
-        imgSrc,
-        authors,
-        description,
-        language,
-        categories,
-        listPrice
-    } = book
-    console.log(imgSrc)
+    function bookReadingLevel() {
+        if (book.pageCount > 500) return 'Serious Reading'
+        if (book.pageCount > 200) return 'Descent Reading'
+        return 'Light Reading'
+    }
+
+
+    function onToggleReviewModal() {
+        setIsShowReviewModal((prevIsReviewModal) => !prevIsReviewModal)
+    }
+
+
+    function onSaveReview(reviewToAdd) {
+        setIsLoadingReview(true)
+        reviewService.saveReview(book.id, reviewToAdd)
+            .then((review => {
+                setBook(prevBook => {
+                    const reviews = [review, ...prevBook.reviews]
+                    return { ...prevBook, reviews }
+                })
+            }))
+            .catch(() => showErrorMsg(`Review to ${book.title} Failed!`))
+            .finally(() => setIsLoadingReview(false))
+    }
+
+
+    function onRemoveReview(reviewId) {
+        setIsLoadingReview(true)
+        reviewService.removeReview(book.id, reviewId)
+            .then(() => {
+                setBook(prevBook => {
+                    const filteredReviews = prevBook.reviews.filter(review => review.id !== reviewId)
+                    return { ...prevBook, reviews: filteredReviews }
+                })
+            })
+            .finally(() => setIsLoadingReview(false))
+    }
+
+
+    if (isLoading || !book) return <div className="loader"></div>
     return (
-        <section className="book-details-container">
-            <div className="book-details-title">{title}</div>
-            <div className="book-details-subtitle">{subtitle}</div>
-            <div className="book-thumbnail-container">
-                {listPrice.isOnSale && <div className="book-details-on-sale">On-sale!</div>}
-                <img src={imgSrc} />
+        <article className='book-details'>
+            <button className='close'>
+                <Link to='/book'>
+                    X
+                </Link>
+            </button>
+            <nav className='book-details-nav'>
+                <Link to={`/book/${book.prevBookId}`}>
+                    <button>Prev</button>
+                </Link>
+                <Link to={`/book/${book.nextBookId}`}>
+                    <button>Next</button>
+                </Link>
+            </nav>
+            <h2>{book.title}</h2>
+            <span>{getBookDateLevel()}</span>
+            <h4>{bookReadingLevel()}</h4>
+
+
+            <img className='book-img' src={book.thumbnail} alt="" />
+
+
+            <p className={book.listPrice.amount > 200 ? 'highPrice' : 'lowPrice'}>
+                <span className='bold-txt'>Price: </span>
+                {book.listPrice.amount} {book.listPrice.currencyCode}
+            </p>
+            <p>
+                <span className='bold-txt'>Language:</span>
+                {book.language}
+            </p>
+            {book.categories && <p>
+                <span className='bold-txt'>Categoric:</span> {book.categories}
+            </p>}
+            {book.authors && <p>
+                <span className='bold-txt'>Authors:</span> {book.authors}
+            </p>}
+            {book.description && <LongTxt txt={book.description} />}
+            {book.listPrice.isOnSale && <img className="on-sale-icon" src="/react-template-proj/assets/img/onSale.png.png" alt="" />}
+
+
+            <hr className='brake-line' />
+
+
+            <button onClick={onToggleReviewModal}>Add Review</button>
+            {isShowReviewModal && (
+                <AddReview
+                    toggleReview={onToggleReviewModal}
+                    onSaveReview={onSaveReview}
+                />
+            )}
+
+
+            <div className='review-container'>
+                {!isLoadingReview
+                    ? <ReviewList reviews={book.reviews} onRemoveReview={onRemoveReview} />
+                    : <div className="loader"></div>
+                }
             </div>
 
-            <div className="book-details-info">
 
-                <div className="book-details-info-row">
-                    <span className="book-details-info-title">Year publish:</span>
-                    <span className="book-details-info-text">{getPublishDate()}</span>
-                </div>
-
-                <div className="book-details-info-row">
-                    <span className="book-details-info-title">Author{(authors.length > 1) ? 's' : ''}:</span>
-                    <span className="book-details-info-text">{authors.join(', ')}</span>
-                </div>
-
-                <div className="book-details-info-row">
-                    <span className="book-details-info-title">Language:</span>
-                    <span className="book-details-info-text">{getBookLng(language)}</span>
-                </div>
-
-                <div className="book-details-info-row">
-                    <span className="book-details-info-title">Categories:</span>
-                    <span className="book-details-info-text">{categories.join(', ')}</span>
-                </div>
-
-                <div className="book-details-info-row">
-                    <span className="book-details-info-title">Pages:</span>
-                    <span className="book-details-info-text">{getPageCount()}</span>
-                </div>
-
-                <div className="book-details-info-row">
-                    <span className="book-details-info-title">Price:</span>
-                    <span className={"book-details-info-text " + getPriceClass()}>
-                        {listPrice.amount} {listPrice.currencyCode}
-                        {/* {(!book.listPrice.isOnSale) ? ' (on sale)' : ''} */}
-                    </span>
-                </div>
-
-                <div className="book-details-buy-container">
-                    {(book.listPrice.isOnSale) &&
-                        <button className="buy-book-btn" onClick={() => alert(`HA! ma ze po hanut?`)}>
-                            Buy it now!
-                        </button>
-                    }
-                    <div className="actions-btns">
-                        <button className="go-back-btn" onClick={onGoBack}>⬅ Go back</button>
-                        <button className="go-edit-btn" onClick={onGoEdit}>Go Edit ➡</button>
-                    </div>
-                </div>
-
-                <div className="book-details-info-row">
-                    <span className="book-details-info-title">Description:</span>
-                    <LongTxt txt={description} />
-                </div>
-            </div>
-        </section>
+        </article>
     )
 }

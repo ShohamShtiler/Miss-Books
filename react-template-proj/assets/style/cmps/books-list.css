@@ -56,3 +56,18 @@
   text-align: right;
   word-wrap: break-word;
 }
+
+
+.close {
+  position: absolute;
+  border-radius: 50%;
+  top: -7px;
+  right: -7px;
+  background: rgb(207, 158, 158);
+}
+
+
+.books-lst-container div:hover img {
+  animation: bounceIn;
+  animation-duration: 2s;
+}

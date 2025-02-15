@@ -16,6 +16,13 @@
 @import url('./cmps/app-header.css');
 @import url('./cmps/about-us.css');
 @import url('./cmps/home-page.css');
+@import url('./cmps/add-book.css');
+@import url('./cmps/add-review.css');
+@import url('./cmps/book-preview.css');
+@import url('./cmps/star-rating.css');
+@import url('./cmps/user-msg.css');
 
 /* Pages */
-@import 'pages/home.css'
+@import 'pages/home.css';
+@import 'pages/BookEdit.css';
+

@@ -1,86 +1,57 @@
-const { useEffect, useState } = React
+const { useState, useEffect } = React
+const { Link } = ReactRouterDOM
 
-import { bookService } from '../services/book-service.js'
+
+import { booksService } from '../services/books.service.js'
 import { BookList } from '../cmps/BookList.jsx'
-import { BookDetails } from './BookDetails.jsx'
 import { BookFilter } from '../cmps/BookFilter.jsx'
-import { BookEdit } from './BookEdit.jsx'
+import { showSuccessMsg } from '../services/event-bus.service.js'
+
+
+
 
 export function BookIndex() {
-    const [books, setBooks] = useState(null)
-    const [isEdit, setIsEdit] = useState(false)
-    const [filterBy, setFilterBy] = useState(bookService.getDefaultFilter())
-    const [selectedBook, setSelectedBook] = useState(null)
+    const [books, setBooks] = useState([])
+    const [filterBy, setFilterBy] = useState(booksService.getDefaultFilter()) // maxPrice: 100
+    // console.log('filterBy:', filterBy)
+
 
     useEffect(() => {
         loadBooks()
     }, [filterBy])
 
+
     function loadBooks() {
-        bookService.query(filterBy)
-            .then((books) => {
-                setBooks(books)
+        // console.log('loadBooks, filterBy:', filterBy)
+        booksService.query(filterBy)
+            .then(setBooks)
+    }
+
+
+    function onSetFilterBy(newFilter) {
+        // console.log('filter bookIndex')
+        setFilterBy(prevFilter => ({ ...prevFilter, ...newFilter }))
+    }
+
+
+    function removeBook(bookId) {
+        booksService.remove(bookId)
+            .then(() => {
+                setBooks(prevBooks => prevBooks.filter(book => bookId !== book.id))
+                showSuccessMsg('Book has been successfully removed!')
+            })
+            .catch(() => {
+                showErrorMsg(`couldn't remove book`)
+                navigate('/book')
             })
     }
 
-    function onSelectBook(bookId) {
-        const book = books.find(book => book.id === bookId)
-        setSelectedBook(book)
 
-        // bookService.getById(bookId)
-        //     .then(book => setSelectedBook(book))
-    }
-
-    function onUpdateBook(bookToSave) {
-        bookService.save(bookToSave)
-            .then((savedBook) => {
-                setSelectedBook(bookToSave)
-                setIsEdit(false)
-                setBooks(prevBooks => prevBooks.map((b) => b.id === savedBook.id ? savedBook : b))
-            })
-    }
-
-    function onRemoveBook(bookId) {
-        bookService.remove(bookId)
-            .then(() => setBooks(prevBooks => 
-                prevBooks.filter(book => book.id !== bookId)))
-    }
-
-    function onSetFilter(filterBy) {
-        setFilterBy(filterBy)
-    }
-
-    // console.log(books)
-    if (!books) return <div>Loading...</div>
     return (
-        <main>
-            {!selectedBook && (
-                <React.Fragment>
-                    <BookFilter onSetFilter={onSetFilter} filterBy={filterBy} />
-                    {books.length && <BookList books={books} onSelectBook={onSelectBook} onRemoveBook={onRemoveBook} />}
-                    {!books.length && <div> No Books found...</div>}
-                </React.Fragment>
-            )}
-
-            {selectedBook && (
-                <section>
-                    {!isEdit && (
-                        <BookDetails
-                            book={selectedBook}
-                            onGoBack={() => setSelectedBook(null)}
-                            onGoEdit={() => setIsEdit(true)}
-                        />
-                    )}
-
-                    {isEdit && (
-                        <BookEdit
-                            book={selectedBook}
-                            onUpdate={onUpdateBook}
-                            onCancelEdit={() => setIsEdit(false)}
-                        />
-                    )}
-                </section>
-            )}
-        </main>
+        <div className='books-container'>
+            <BookFilter filterBy={filterBy} onFilterBy={onSetFilterBy} />
+            <div className='add-book'><Link to="/book/edit"><button>Add book</button></Link></div>
+            <BookList books={books} onRemove={removeBook} />
+        </div>
     )
 }
